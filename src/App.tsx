@@ -1,62 +1,42 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { renderCanvas } from './utils/renderCanvas';
 
 const quotes = ['人生就像一杯茶\n不会苦一辈子\n但总会苦一阵子'];
+const fontFamilies = [
+  'Arial',
+  'Verdana',
+  'Times New Roman',
+  'Courier New',
+  'Georgia',
+  'Palatino Linotype',
+  'Comic Sans MS',
+];
 
 function App() {
   const [text, setText] = useState('');
   const [image, setImage] = useState('/assets/郭德纲.jpg');
+  const [fontFamily, setFontFamily] = useState('Arial');
+  const [fontSize, setFontSize] = useState(24);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const memoizedQuotes = useMemo(() => quotes, []);
 
-  const renderCanvas = (text: string) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const img = new Image();
-    img.onload = () => {
-      const canvasWidth = 512;
-      const scaleFactor = canvasWidth / img.width;
-      const scaledHeight = img.height * scaleFactor;
-      const lineHeight = 50;
-      const fontSize = 20;
-      const imageLineHeight = lineHeight / scaleFactor;
-      const lines = text.split('\n');
-      canvas.width = canvasWidth;
-      canvas.height = scaledHeight + (lines.length - 1) * lineHeight;
-
-      ctx.drawImage(img, 0, 0, canvas.width, scaledHeight);
-      ctx.font = `${fontSize}px Arial`;
-      ctx.fillStyle = 'white';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'black';
-      ctx.shadowBlur = 5;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-
-      for (let i = 0; i < lines.length; i++) {
-        if (i > 0) {
-          const sx = 0;
-          const sy = img.height - imageLineHeight;
-          const sw = img.width;
-          const sh = imageLineHeight;
-          const dx = 0;
-          const dy = scaledHeight + (i - 1) * lineHeight;
-          const dw = canvas.width;
-          const dh = lineHeight;
-          ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-        }
-        const y = scaledHeight + i * lineHeight - (lineHeight - fontSize) / 2;
-        ctx.fillText(lines[i], canvas.width / 2, y);
-      }
-    };
-    img.src = image;
-  };
+  const handleRenderCanvas = useCallback(
+    (text: string) => {
+      const renderText = text || memoizedQuotes[Math.floor(Math.random() * memoizedQuotes.length)];
+      renderCanvas(canvasRef.current, renderText, image, fontFamily, fontSize);
+    },
+    [image, fontFamily, fontSize, memoizedQuotes]
+  );
 
   useEffect(() => {
-    renderCanvas(text || quotes[Math.floor(Math.random() * quotes.length)]);
-  }, [text, image]);
+    handleRenderCanvas(text);
+  }, [text, image, fontFamily, handleRenderCanvas]);
+
+  const handleFontFamilyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newFontFamily = e.target.value;
+    setFontFamily(newFontFamily);
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setImage(e.target.value);
@@ -92,6 +72,37 @@ function App() {
 
       <main className="flex flex-wrap justify-center">
         <div className="column bg-white p-6 rounded shadow" style={{ width: 512 }}>
+          <label htmlFor="font-size-slider" className="block text-lg font-medium mb-2">
+            字体大小
+          </label>
+          <div className="flex items-center">
+            <input
+              id="font-size-slider"
+              type="range"
+              min="12"
+              max="48"
+              step="1"
+              value={fontSize}
+              onChange={e => setFontSize(Number(e.target.value))}
+              className="w-full mb-4 mr-4"
+            />
+            <span className="text-lg">{fontSize}px</span>
+          </div>
+          <label htmlFor="font-family-select" className="block text-lg font-medium mb-2">
+            选择字体
+          </label>
+          <select
+            id="font-family-select"
+            className="w-full p-2 border rounded mb-4"
+            value={fontFamily}
+            onChange={handleFontFamilyChange}
+          >
+            {fontFamilies.map(font => (
+              <option key={font} value={font}>
+                {font}
+              </option>
+            ))}
+          </select>
           <label htmlFor="image-select" className="block text-lg font-medium mb-2">
             选择英雄
           </label>
@@ -130,7 +141,7 @@ function App() {
             className="w-full p-2 border rounded mb-4"
             value={text}
             onChange={e => setText(e.target.value)}
-            placeholder={quotes[Math.floor(Math.random() * quotes.length)]}
+            placeholder={memoizedQuotes[Math.floor(Math.random() * memoizedQuotes.length)]}
           ></textarea>
 
           <button
@@ -141,10 +152,25 @@ function App() {
           </button>
         </div>
 
+        {/* render part */}
         <div className="column bg-white rounded shadow" style={{ width: 512 }}>
           <canvas ref={canvasRef} className="w-full h-auto border rounded"></canvas>
         </div>
       </main>
+
+      <footer className="bg-blue-500 text-white p-4 text-center mt-8">
+        <p>
+          GitHub: &nbsp;
+          <a
+            href="https://github.com/huccct/fake-screenshot"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            https://github.com/huccct/fake-screenshot
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }
