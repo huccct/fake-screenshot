@@ -20,13 +20,21 @@ function App() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const memoizedQuotes = useMemo(() => quotes, []);
+  // 添加状态来控制水印的显示
+  const [showWatermark, setShowWatermark] = useState(false)
+
+  // 处理开关变化的函数
+  const handleToggleWatermark = () => {
+    setShowWatermark(!showWatermark);
+    // freshImg()
+  }
 
   const handleRenderCanvas = useCallback(
     (text: string) => {
       const renderText = text || memoizedQuotes[Math.floor(Math.random() * memoizedQuotes.length)];
-      renderCanvas(canvasRef.current, renderText, image, fontFamily, fontSize);
+      renderCanvas(canvasRef.current, renderText, image, fontFamily, fontSize, showWatermark);
     },
-    [image, fontFamily, fontSize, memoizedQuotes]
+    [image, fontFamily, fontSize, memoizedQuotes, showWatermark] // 添加 showWatermark 到依赖项列表
   );
 
   useEffect(() => {
@@ -51,6 +59,8 @@ function App() {
       };
       reader.readAsDataURL(file);
     }
+    // 清除文件输入的当前值，以便再次触发 onChange 事件
+    e.target.value = ''; // 添加这一行
   };
 
   const handleSaveClick = () => {
@@ -143,7 +153,11 @@ function App() {
             onChange={e => setText(e.target.value)}
             placeholder={memoizedQuotes[Math.floor(Math.random() * memoizedQuotes.length)]}
           ></textarea>
-
+          <button
+            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+            onClick={handleToggleWatermark}>
+            {showWatermark ? '隐藏水印' : '显示水印'}
+          </button>
           <button
             className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
             onClick={handleSaveClick}
@@ -151,6 +165,8 @@ function App() {
             保存图片
           </button>
         </div>
+
+        {/* add watermark toggle button */}
 
         {/* render part */}
         <div className="column bg-white rounded shadow" style={{ width: 512 }}>
