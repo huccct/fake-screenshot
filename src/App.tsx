@@ -21,13 +21,13 @@ function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const memoizedQuotes = useMemo(() => quotes, []);
   // 添加状态来控制水印的显示
-  const [showWatermark, setShowWatermark] = useState(false)
+  const [showWatermark, setShowWatermark] = useState(false);
 
   // 处理开关变化的函数
   const handleToggleWatermark = () => {
     setShowWatermark(!showWatermark);
     // freshImg()
-  }
+  };
 
   const handleRenderCanvas = useCallback(
     (text: string) => {
@@ -153,17 +153,21 @@ function App() {
             onChange={e => setText(e.target.value)}
             placeholder={memoizedQuotes[Math.floor(Math.random() * memoizedQuotes.length)]}
           ></textarea>
-          <button
-            className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-            onClick={handleToggleWatermark}>
-            {showWatermark ? '隐藏水印' : '显示水印'}
-          </button>
-          <button
-            className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-            onClick={handleSaveClick}
-          >
-            保存图片
-          </button>
+          <div className="flex mx-2 space-x-4">
+            <button
+              className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+              onClick={handleToggleWatermark}
+            >
+              {showWatermark ? '隐藏水印' : '显示水印'}
+            </button>
+
+            <button
+              className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+              onClick={handleSaveClick}
+            >
+              保存图片
+            </button>
+          </div>
         </div>
 
         {/* add watermark toggle button */}
